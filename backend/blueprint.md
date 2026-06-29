@@ -48,6 +48,11 @@ backend/
 
 - 顯示 atwk_job_log 記錄（job_name / 時間 / 狀態 / 結果）
 
+### Tab 6 — 系統架構
+
+- 讀取 `GET /admin/architecture`，顯示 `docs/design/ARCHITECTURE.md` 原始內容
+- Markdown 渲染（marked.js）+ Mermaid 圖表渲染（mermaid.js，將 ```mermaid code block 轉為 `<div class="mermaid">` 後 `mermaid.run()`）
+
 ## 實作順序（Layer 3）
 
 1. admin.html 骨架（登入頁 + Tab 切換）

@@ -491,3 +491,54 @@ ATWK 將 LLM 用途拆為兩個角色，由 `api/config.py` 的 `ingest_*` / `qu
     <td style="padding:6px 12px;border:1px solid #d6e8f5;">全流程 e2e；9/11 pass（2 項需 LLM quota）</td>
   </tr>
 </table>
+
+---
+
+## 9. 知識庫載體選型：Obsidian vs ATWK 自建系統
+
+ATWK 的 Wiki 概念源自 Karpathy 提出的「Raw / Wiki / Schema 三層分工 + Ingest / Query / Lint 操作循環」，原始文章以 Obsidian 作為知識載體。ATWK 改用自建系統，差異如下：
+
+<table style="width:100%;border-collapse:collapse;font-size:0.88em;margin-bottom:0.5em;">
+  <tr style="background:#1a6fa0;color:white;font-weight:bold;">
+    <td style="padding:6px 12px;border:1px solid #7fb3d3;">面向</td>
+    <td style="padding:6px 12px;border:1px solid #7fb3d3;">文章（Karpathy 概念）</td>
+    <td style="padding:6px 12px;border:1px solid #7fb3d3;">ATWK 專案</td>
+  </tr>
+  <tr style="background:#ffffff;">
+    <td style="padding:6px 12px;border:1px solid #d6e8f5;font-weight:bold;">知識存放</td>
+    <td style="padding:6px 12px;border:1px solid #d6e8f5;">Obsidian vault（本機 .md + 雙向連結）</td>
+    <td style="padding:6px 12px;border:1px solid #d6e8f5;"><code>wiki/</code> 資料夾（純 .md）+ PostgreSQL 索引</td>
+  </tr>
+  <tr style="background:#eaf3fb;">
+    <td style="padding:6px 12px;border:1px solid #d6e8f5;font-weight:bold;">使用情境</td>
+    <td style="padding:6px 12px;border:1px solid #d6e8f5;">個人知識管理、單人使用</td>
+    <td style="padding:6px 12px;border:1px solid #d6e8f5;">部門級系統、多人透過 Web UI 查詢</td>
+  </tr>
+  <tr style="background:#ffffff;">
+    <td style="padding:6px 12px;border:1px solid #d6e8f5;font-weight:bold;">查詢介面</td>
+    <td style="padding:6px 12px;border:1px solid #d6e8f5;">直接在 Obsidian 裡問 LLM</td>
+    <td style="padding:6px 12px;border:1px solid #d6e8f5;">前台 Vue 3 Web UI（REST API）</td>
+  </tr>
+  <tr style="background:#eaf3fb;">
+    <td style="padding:6px 12px;border:1px solid #d6e8f5;font-weight:bold;">視覺化</td>
+    <td style="padding:6px 12px;border:1px solid #d6e8f5;">Obsidian 的知識圖譜</td>
+    <td style="padding:6px 12px;border:1px solid #d6e8f5;">無（不是需求）</td>
+  </tr>
+  <tr style="background:#ffffff;">
+    <td style="padding:6px 12px;border:1px solid #d6e8f5;font-weight:bold;">操作者</td>
+    <td style="padding:6px 12px;border:1px solid #d6e8f5;">使用者自己 + LLM</td>
+    <td style="padding:6px 12px;border:1px solid #d6e8f5;">後台排程 JOB + API 驅動</td>
+  </tr>
+</table>
+
+**核心結論：**
+
+Obsidian 在文章裡是「載體」，不是「必要元件」。文章的比喻是「Obsidian 是 IDE，LLM 是 programmer，Wiki 是 codebase」——重點是 **Wiki 這個概念**（raw / wiki / schema 三層分工、Ingest / Query / Lint 三個操作），Obsidian 只是作者個人選擇的容器。
+
+ATWK 實作了同樣的概念，只是把容器換成：
+
+- 檔案系統（`wiki/` .md 給 LLM 讀寫）
+- PostgreSQL（給 API 查詢）
+- Vue Web UI（給使用者操作）
+
+這樣才符合「部門級、可部署、有後台管理」的需求，Obsidian 是沒辦法多人共用的。
