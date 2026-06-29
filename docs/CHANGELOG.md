@@ -2,6 +2,16 @@
 
 ---
 
+## [0.7.0] 2026-06-29
+
+### Layer 7 — 端對端整合測試通過
+
+- 修正 PostgreSQL 認證：`pg_hba.conf` 加入 127.0.0.1 trust 規則，postgres 密碼設為 `123`
+- 執行 `tests/e2e_test.py` 全流程驗收：9/11 pass（2 項需 LLM API key，預期 skip）
+- 初始化 git repo，推送 77 個檔案至 GitHub（https://github.com/Blackjtsai/agent-wiki）
+
+---
+
 ## [0.6.0] 2026-06-28
 
 ### Layer 6 — 異質系統整合

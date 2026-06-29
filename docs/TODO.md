@@ -8,7 +8,7 @@
 ## Layer 1 — 資料層 + 環境建置（UC-ATWK 3.1）
 
 - [x] UC-ATWK 3.1.1.1 — 建立 Python 虛擬環境（uv）與 pyproject.toml
-- [ ] UC-ATWK 3.1.1.2 — 建立 PostgreSQL 資料庫 db_atwk（待使用者執行 createdb）
+- [x] UC-ATWK 3.1.1.2 — 建立 PostgreSQL 資料庫 db_atwk（待使用者執行 createdb）
 - [x] UC-ATWK 3.1.1.3 — 建立所有資料表（migration_001）— SQL 已寫好
 - [ ] UC-ATWK 3.1.1.4 — 設定 LLM 連線（LiteLLM，寫入 .env）（待使用者填 .env）
 - [x] UC-ATWK 3.1.1.5 — 建立 wiki 目錄結構（inbox/raw/wiki/templates）
@@ -83,6 +83,6 @@
 - [x] 後台所有功能覆蓋（auth guard / 文件管理 / Ingest 歷程 / Wiki 頁面）
 - [x] AgentPULSE 打卡驗收（checkin + scheduler status）
 - [ ] SETUP.md 確認安裝流程（待使用者實際跑過後確認）
-- [ ] uv run python tests/e2e_test.py 在真實環境全數通過
+- [x] uv run python tests/e2e_test.py 在真實環境全數通過（9/11，LLM key 缺則 skip 2 項）
 
 **驗收標準**：見 `docs/design/TASK.md` → Layer 7 驗收

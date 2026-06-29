@@ -6,7 +6,7 @@ import sys
 import time
 from pathlib import Path
 
-ROOT = Path(__file__).parent
+ROOT = Path(__file__).parent.parent
 
 def read_env():
     env = {}
