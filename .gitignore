@@ -1,0 +1,43 @@
+# ============================================================
+# ATWK — .gitignore
+# ============================================================
+
+# 環境變數（含密碼 / API key）
+.env
+
+# Python 虛擬環境
+.venv/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# uv
+uv.lock
+
+# Pytest / Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# inbox（暫存上傳文件，不追蹤）
+inbox/*
+!inbox/.gitkeep

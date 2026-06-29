@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATWK 後台管理</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.0/marked.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; color: #333; }
+#app { display: flex; flex-direction: column; min-height: 100vh; }
+
+/* ── Login ── */
+.login-wrap { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+.login-card { background: #fff; border-radius: 12px; padding: 40px; width: 360px; box-shadow: 0 4px 20px rgba(0,0,0,.1); }
+.login-card h1 { font-size: 22px; margin-bottom: 8px; }
+.login-card p  { color: #888; font-size: 14px; margin-bottom: 24px; }
+.login-card input { width: 100%; padding: 10px 14px; border: 1px solid #d9d9d9; border-radius: 6px; font-size: 14px; margin-bottom: 12px; }
+.login-card button { width: 100%; padding: 10px; background: #1677ff; color: #fff; border: none; border-radius: 6px; font-size: 15px; cursor: pointer; }
+.login-card button:hover { background: #0958d9; }
+.err { color: #ff4d4f; font-size: 13px; margin-top: 8px; }
+
+/* ── Layout ── */
+.header { background: #001529; color: #fff; padding: 0 24px; display: flex; align-items: center; height: 56px; }
+.header h1 { font-size: 18px; margin-right: auto; }
+.header .logout { color: #aaa; font-size: 13px; cursor: pointer; }
+.header .logout:hover { color: #fff; }
+.main { display: flex; flex: 1; }
+.sidebar { width: 200px; background: #001529; padding: 16px 0; }
+.sidebar li { list-style: none; }
+.sidebar li a { display: block; padding: 12px 24px; color: #aaa; font-size: 14px; cursor: pointer; text-decoration: none; transition: .2s; }
+.sidebar li a:hover, .sidebar li a.active { color: #fff; background: #1677ff; }
+.content { flex: 1; padding: 24px; overflow: auto; }
+
+/* ── Cards / Tables ── */
+.card { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+.card h2 { font-size: 16px; margin-bottom: 16px; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; text-align: left; }
+th { background: #fafafa; font-weight: 600; }
+tr:hover td { background: #f6f6f6; }
+
+/* ── Buttons ── */
+.btn { display: inline-block; padding: 6px 14px; border-radius: 6px; font-size: 13px; cursor: pointer; border: 1px solid transparent; }
+.btn-primary { background: #1677ff; color: #fff; border-color: #1677ff; }
+.btn-primary:hover { background: #0958d9; }
+.btn-danger  { background: #fff; color: #ff4d4f; border-color: #ff4d4f; }
+.btn-danger:hover  { background: #ff4d4f; color: #fff; }
+.btn-default { background: #fff; color: #333; border-color: #d9d9d9; }
+.btn-default:hover { border-color: #1677ff; color: #1677ff; }
+.btn + .btn { margin-left: 6px; }
+
+/* ── Tags ── */
+.tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+.tag-P { background: #e6f4ff; color: #1677ff; }
+.tag-R { background: #fff7e6; color: #fa8c16; }
+.tag-D { background: #f6ffed; color: #52c41a; }
+.tag-E { background: #fff2f0; color: #ff4d4f; }
+.tag-S { background: #f6ffed; color: #52c41a; }
+
+/* ── Upload ── */
+.upload-area { border: 2px dashed #d9d9d9; border-radius: 8px; padding: 32px; text-align: center; cursor: pointer; transition: .2s; }
+.upload-area:hover, .upload-area.drag { border-color: #1677ff; background: #f0f7ff; }
+.upload-area input { display: none; }
+
+/* ── Modal ── */
+.modal-mask { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.modal { background: #fff; border-radius: 10px; width: 760px; max-height: 80vh; display: flex; flex-direction: column; }
+.modal-header { padding: 16px 20px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
+.modal-header h3 { font-size: 16px; }
+.modal-body { padding: 20px; overflow: auto; flex: 1; }
+.modal-close { cursor: pointer; font-size: 20px; color: #aaa; }
+.modal-close:hover { color: #333; }
+
+/* ── Markdown ── */
+.md-body h1,h2,h3 { margin: 12px 0 8px; }
+.md-body p { margin-bottom: 8px; line-height: 1.7; }
+.md-body table { margin-bottom: 12px; }
+.md-body code { background: #f5f5f5; padding: 2px 6px; border-radius: 4px; }
+.md-body pre  { background: #f5f5f5; padding: 12px; border-radius: 6px; overflow: auto; margin-bottom: 12px; }
+
+/* ── Empty ── */
+.empty { text-align: center; color: #bbb; padding: 40px; }
+
+/* ── Misc ── */
+.toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+.toolbar input, .toolbar select { padding: 6px 10px; border: 1px solid #d9d9d9; border-radius: 6px; font-size: 13px; }
+.pagination { margin-top: 12px; display: flex; gap: 8px; align-items: center; font-size: 13px; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ══════════════ 登入頁 ══════════════ -->
+  <div v-if="!loggedIn" class="login-wrap">
+    <div class="login-card">
+      <h1>⚙️ ATWK 後台管理</h1>
+      <p>請輸入管理員 Token 登入</p>
+      <input v-model="loginToken" type="password" placeholder="Token" @keyup.enter="doLogin">
+      <button @click="doLogin">登入</button>
+      <p v-if="loginErr" class="err">{{ loginErr }}</p>
+    </div>
+  </div>
+
+  <!-- ══════════════ 主介面 ══════════════ -->
+  <template v-else>
+    <div class="header">
+      <h1>🏛️ ATWK 後台管理</h1>
+      <span class="logout" @click="logout">登出</span>
+    </div>
+    <div class="main">
+      <!-- Sidebar -->
+      <ul class="sidebar">
+        <li><a :class="{active: tab==='documents'}" @click="tab='documents';loadDocuments()">📄 文件管理</a></li>
+        <li><a :class="{active: tab==='ingest'}"    @click="tab='ingest';loadIngest()">🔄 Ingest 歷程</a></li>
+        <li><a :class="{active: tab==='wiki'}"      @click="tab='wiki';loadWiki()">📖 Wiki 頁面</a></li>
+        <li><a :class="{active: tab==='jobs'}"      @click="tab='jobs';loadJobs();loadSchedulerStatus()">⏱️ JOB 記錄</a></li>
+      </ul>
+
+      <!-- ════ Tab: 文件管理 ════ -->
+      <div class="content" v-show="tab==='documents'">
+        <div class="card">
+          <h2>上傳文件</h2>
+          <div class="upload-area" :class="{drag: isDrag}"
+               @click="$refs.fileInput.click()"
+               @dragover.prevent="isDrag=true"
+               @dragleave="isDrag=false"
+               @drop.prevent="onDrop">
+            <p style="font-size:36px">📂</p>
+            <p style="margin-top:8px">點擊或拖曳文件到此處</p>
+            <p style="color:#aaa;font-size:13px">支援 pptx / docx / pdf / txt / md</p>
+            <input ref="fileInput" type="file" @change="onFileSelect" accept=".pptx,.docx,.pdf,.txt,.md">
+          </div>
+          <p v-if="uploadMsg" :style="uploadOk?'color:#52c41a':'color:#ff4d4f'" style="margin-top:10px">{{ uploadMsg }}</p>
+        </div>
+
+        <div class="card">
+          <h2>文件列表</h2>
+          <div class="toolbar">
+            <select v-model="docFilter" @change="loadDocuments()">
+              <option value="">全部狀態</option>
+              <option value="P">Pending</option>
+              <option value="D">Done</option>
+              <option value="E">Error</option>
+            </select>
+            <button class="btn btn-default" @click="loadDocuments()">🔄 刷新</button>
+          </div>
+          <table>
+            <thead><tr><th>ID</th><th>檔名</th><th>類型</th><th>大小</th><th>狀態</th><th>上傳時間</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr v-if="!documents.length"><td colspan="7" class="empty">尚無文件</td></tr>
+              <tr v-for="d in documents" :key="d.document_id">
+                <td>{{ d.document_id }}</td>
+                <td>{{ d.file_name }}</td>
+                <td>{{ d.file_type }}</td>
+                <td>{{ formatSize(d.file_size) }}</td>
+                <td><span class="tag" :class="'tag-'+d.ingest_status">{{ statusLabel(d.ingest_status) }}</span></td>
+                <td>{{ formatDate(d.create_date) }}</td>
+                <td>
+                  <button class="btn btn-primary" @click="triggerIngest(d.document_id)">▶ Ingest</button>
+                  <button class="btn btn-danger"  @click="deleteDocument(d.document_id)" v-if="d.ingest_status==='P'||d.ingest_status==='E'">🗑</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ════ Tab: Ingest 歷程 ════ -->
+      <div class="content" v-show="tab==='ingest'">
+        <div class="card">
+          <h2>Ingest 歷程</h2>
+          <div class="toolbar">
+            <button class="btn btn-default" @click="loadIngest()">🔄 刷新</button>
+          </div>
+          <table>
+            <thead><tr><th>ID</th><th>文件</th><th>開始時間</th><th>結束時間</th><th>狀態</th><th>頁數</th><th>明細</th></tr></thead>
+            <tbody>
+              <tr v-if="!ingestLogs.length"><td colspan="7" class="empty">尚無記錄</td></tr>
+              <tr v-for="l in ingestLogs" :key="l.ingest_id">
+                <td>{{ l.ingest_id }}</td>
+                <td>{{ l.file_name }}</td>
+                <td>{{ formatDate(l.ingest_start) }}</td>
+                <td>{{ l.ingest_end ? formatDate(l.ingest_end) : '—' }}</td>
+                <td><span class="tag" :class="'tag-'+l.status">{{ l.status==='S'?'成功':l.status==='E'?'失敗':'執行中' }}</span></td>
+                <td>{{ l.page_count }}</td>
+                <td><button class="btn btn-default" @click="viewIngestDetail(l.ingest_id)">明細</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ════ Tab: Wiki 頁面 ════ -->
+      <div class="content" v-show="tab==='wiki'">
+        <div class="card">
+          <h2>Wiki 頁面管理</h2>
+          <div class="toolbar">
+            <input v-model="wikiKeyword" placeholder="搜尋標題 / 路徑..." @input="loadWiki()">
+            <select v-model="wikiCategory" @change="loadWiki()">
+              <option value="">全部分類</option>
+              <option value="concepts">concepts</option>
+              <option value="operations">operations</option>
+              <option value="architecture">architecture</option>
+              <option value="sources">sources</option>
+              <option value="syntheses">syntheses</option>
+            </select>
+            <button class="btn btn-default" @click="loadWiki()">🔄 刷新</button>
+            <button class="btn btn-primary" @click="triggerLint(null)">🧹 全庫 Lint</button>
+          </div>
+          <table>
+            <thead><tr><th>ID</th><th>路徑</th><th>標題</th><th>分類</th><th>最後 Lint</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr v-if="!wikiPages.length"><td colspan="6" class="empty">尚無 Wiki 頁面</td></tr>
+              <tr v-for="p in wikiPages" :key="p.page_id">
+                <td>{{ p.page_id }}</td>
+                <td style="font-size:12px;color:#888">{{ p.page_path }}</td>
+                <td>{{ p.page_title }}</td>
+                <td><span class="tag tag-D">{{ p.page_category }}</span></td>
+                <td style="font-size:12px">{{ p.last_lint_date ? formatDate(p.last_lint_date) : '—' }}</td>
+                <td>
+                  <button class="btn btn-default" @click="viewWikiPage(p.page_id)">檢視</button>
+                  <button class="btn btn-default" @click="triggerLint(p.page_id)">Lint</button>
+                  <button class="btn btn-danger"  @click="deleteWikiPage(p.page_id)">🗑</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ════ Tab: JOB 記錄 ════ -->
+      <div class="content" v-show="tab==='jobs'">
+        <div class="card">
+          <h2>排程狀態</h2>
+          <div class="toolbar">
+            <button class="btn btn-default" @click="loadSchedulerStatus()">🔄 刷新排程狀態</button>
+          </div>
+          <table v-if="schedulerJobs.length">
+            <thead><tr><th>JOB ID</th><th>名稱</th><th>下次執行</th></tr></thead>
+            <tbody>
+              <tr v-for="j in schedulerJobs" :key="j.id">
+                <td><code style="font-size:12px">{{ j.id }}</code></td>
+                <td>{{ j.name }}</td>
+                <td style="font-size:12px">{{ j.next_run_time }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <p v-else style="color:#aaa;font-size:13px">排程器未啟動或無 JOB</p>
+        </div>
+        <div class="card">
+          <h2>JOB 執行記錄</h2>
+          <div class="toolbar">
+            <select v-model="jobNameFilter" @change="loadJobs()">
+              <option value="">全部 JOB</option>
+              <option value="inbox_scan">inbox_scan</option>
+              <option value="ingest">ingest</option>
+              <option value="lint">lint</option>
+              <option value="heartbeat">heartbeat</option>
+            </select>
+            <button class="btn btn-default" @click="loadJobs()">🔄 刷新</button>
+          </div>
+          <table>
+            <thead><tr><th>ID</th><th>JOB 名稱</th><th>開始</th><th>結束</th><th>狀態</th><th>結果</th></tr></thead>
+            <tbody>
+              <tr v-if="!jobLogs.length"><td colspan="6" class="empty">尚無記錄</td></tr>
+              <tr v-for="j in jobLogs" :key="j.job_log_id">
+                <td>{{ j.job_log_id }}</td>
+                <td><code style="font-size:12px">{{ j.job_name }}</code></td>
+                <td>{{ formatDate(j.start_time) }}</td>
+                <td>{{ j.end_time ? formatDate(j.end_time) : '—' }}</td>
+                <td><span class="tag" :class="'tag-'+j.status">{{ j.status==='S'?'成功':j.status==='E'?'失敗':'執行中' }}</span></td>
+                <td style="font-size:12px;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ j.result_msg || '—' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- main -->
+  </template>
+
+  <!-- ══ Modal: Ingest 明細 ══ -->
+  <div class="modal-mask" v-if="ingestDetailModal" @click.self="ingestDetailModal=null">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Ingest 明細 #{{ ingestDetailModal.ingest_id }} — {{ ingestDetailModal.file_name }}</h3>
+        <span class="modal-close" @click="ingestDetailModal=null">✕</span>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom:12px;color:#888;font-size:13px">產出 {{ ingestDetailModal.page_count }} 個 wiki 頁面</p>
+        <table>
+          <thead><tr><th>路徑</th><th>標題</th><th>分類</th></tr></thead>
+          <tbody>
+            <tr v-for="p in ingestDetailModal.pages" :key="p.page_id">
+              <td style="font-size:12px;color:#888">{{ p.page_path }}</td>
+              <td>{{ p.page_title }}</td>
+              <td>{{ p.page_category }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ Modal: Wiki 頁面內容 ══ -->
+  <div class="modal-mask" v-if="wikiPageModal" @click.self="wikiPageModal=null">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>{{ wikiPageModal.page_title }}</h3>
+        <span class="modal-close" @click="wikiPageModal=null">✕</span>
+      </div>
+      <div class="modal-body md-body" v-html="renderMd(wikiPageModal.content)"></div>
+    </div>
+  </div>
+
+</div><!-- app -->
+
+<script>
+const { createApp, ref, reactive } = Vue;
+
+createApp({
+  setup() {
+    const API = '';  // 同源，無需填 base URL
+
+    // ── Auth ──────────────────────────────────────────────
+    const loggedIn   = ref(!!sessionStorage.getItem('atwk_token'));
+    const loginToken = ref('');
+    const loginErr   = ref('');
+
+    async function doLogin() {
+      loginErr.value = '';
+      const res = await fetch(`${API}/admin/login`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({token: loginToken.value}),
+      });
+      if (res.ok) {
+        sessionStorage.setItem('atwk_token', loginToken.value);
+        loggedIn.value = true;
+        loginToken.value = '';
+        tab.value = 'documents';
+        loadDocuments();
+      } else {
+        const data = await res.json();
+        loginErr.value = data.detail || '登入失敗';
+      }
+    }
+
+    function logout() {
+      sessionStorage.removeItem('atwk_token');
+      loggedIn.value = false;
+    }
+
+    function authHeaders() {
+      return { 'Authorization': `Bearer ${sessionStorage.getItem('atwk_token')}` };
+    }
+
+    // ── Tab ──────────────────────────────────────────────
+    const tab = ref('documents');
+
+    // ── Documents ────────────────────────────────────────
+    const documents  = ref([]);
+    const docFilter  = ref('');
+    const uploadMsg  = ref('');
+    const uploadOk   = ref(true);
+    const isDrag     = ref(false);
+
+    async function loadDocuments() {
+      const params = docFilter.value ? `?status=${docFilter.value}` : '';
+      const res = await fetch(`${API}/admin/documents${params}`, {headers: authHeaders()});
+      const data = await res.json();
+      documents.value = data.items || [];
+    }
+
+    async function uploadFile(file) {
+      const fd = new FormData();
+      fd.append('file', file);
+      uploadMsg.value = `上傳中：${file.name}…`;
+      const res = await fetch(`${API}/admin/documents/upload`, {method:'POST', headers: authHeaders(), body: fd});
+      const data = await res.json();
+      if (res.ok) {
+        uploadMsg.value = `✅ ${data.message}`;
+        uploadOk.value = true;
+        loadDocuments();
+      } else {
+        uploadMsg.value = `❌ ${data.detail}`;
+        uploadOk.value = false;
+      }
+    }
+
+    function onFileSelect(e) { if (e.target.files[0]) uploadFile(e.target.files[0]); }
+    function onDrop(e) { isDrag.value=false; if (e.dataTransfer.files[0]) uploadFile(e.dataTransfer.files[0]); }
+
+    async function deleteDocument(id) {
+      if (!confirm(`確定刪除文件 #${id}？`)) return;
+      await fetch(`${API}/admin/documents/${id}`, {method:'DELETE', headers: authHeaders()});
+      loadDocuments();
+    }
+
+    async function triggerIngest(docId) {
+      const res = await fetch(`${API}/admin/ingest-logs/${docId}/trigger`, {method:'POST', headers: authHeaders()});
+      const data = await res.json();
+      alert(data.message || (res.ok ? '已觸發' : '觸發失敗'));
+      if (res.ok) loadDocuments();
+    }
+
+    // ── Ingest ───────────────────────────────────────────
+    const ingestLogs       = ref([]);
+    const ingestDetailModal = ref(null);
+
+    async function loadIngest() {
+      const res = await fetch(`${API}/admin/ingest-logs`, {headers: authHeaders()});
+      const data = await res.json();
+      ingestLogs.value = data.items || [];
+    }
+
+    async function viewIngestDetail(ingestId) {
+      const res = await fetch(`${API}/admin/ingest-logs/${ingestId}/detail`, {headers: authHeaders()});
+      ingestDetailModal.value = await res.json();
+    }
+
+    // ── Wiki ─────────────────────────────────────────────
+    const wikiPages     = ref([]);
+    const wikiKeyword   = ref('');
+    const wikiCategory  = ref('');
+    const wikiPageModal = ref(null);
+
+    async function loadWiki() {
+      const p = new URLSearchParams();
+      if (wikiKeyword.value)  p.set('keyword',  wikiKeyword.value);
+      if (wikiCategory.value) p.set('category', wikiCategory.value);
+      const res = await fetch(`${API}/admin/wiki-pages?${p}`, {headers: authHeaders()});
+      const data = await res.json();
+      wikiPages.value = data.items || [];
+    }
+
+    async function viewWikiPage(pageId) {
+      const res = await fetch(`${API}/admin/wiki-pages/${pageId}`, {headers: authHeaders()});
+      wikiPageModal.value = await res.json();
+    }
+
+    async function deleteWikiPage(pageId) {
+      if (!confirm(`確定刪除 wiki 頁面 #${pageId}？`)) return;
+      await fetch(`${API}/admin/wiki-pages/${pageId}`, {method:'DELETE', headers: authHeaders()});
+      loadWiki();
+    }
+
+    async function triggerLint(pageId) {
+      const p = pageId ? `?page_id=${pageId}` : '';
+      const res = await fetch(`${API}/admin/wiki-pages/lint${p}`, {method:'POST', headers: authHeaders()});
+      const data = await res.json();
+      alert(data.message);
+    }
+
+    // ── JOB ──────────────────────────────────────────────
+    const jobLogs       = ref([]);
+    const jobNameFilter = ref('');
+    const schedulerJobs = ref([]);
+
+    async function loadJobs() {
+      const p = jobNameFilter.value ? `?job_name=${jobNameFilter.value}` : '';
+      const res = await fetch(`${API}/admin/job-logs${p}`, {headers: authHeaders()});
+      const data = await res.json();
+      jobLogs.value = data.items || [];
+    }
+
+    async function loadSchedulerStatus() {
+      const res = await fetch(`${API}/admin/scheduler/status`, {headers: authHeaders()});
+      const data = await res.json();
+      schedulerJobs.value = data.jobs || [];
+    }
+
+    // ── Helpers ──────────────────────────────────────────
+    function formatDate(d) {
+      if (!d) return '—';
+      return new Date(d).toLocaleString('zh-TW', {hour12:false});
+    }
+    function formatSize(b) {
+      if (b < 1024) return `${b} B`;
+      if (b < 1024*1024) return `${(b/1024).toFixed(1)} KB`;
+      return `${(b/1024/1024).toFixed(1)} MB`;
+    }
+    function statusLabel(s) {
+      return {P:'Pending',R:'Running',D:'Done',E:'Error'}[s] || s;
+    }
+    function renderMd(content) {
+      return content ? marked.parse(content) : '';
+    }
+
+    return {
+      loggedIn, loginToken, loginErr, doLogin, logout,
+      tab,
+      documents, docFilter, uploadMsg, uploadOk, isDrag,
+      loadDocuments, onFileSelect, onDrop, deleteDocument, triggerIngest,
+      ingestLogs, ingestDetailModal, loadIngest, viewIngestDetail,
+      wikiPages, wikiKeyword, wikiCategory, wikiPageModal,
+      loadWiki, viewWikiPage, deleteWikiPage, triggerLint,
+      jobLogs, loadJobs,
+      formatDate, formatSize, statusLabel, renderMd,
+      jobNameFilter, schedulerJobs, loadSchedulerStatus,
+    };
+  }
+}).mount('#app');
+</script>
+</body>
+</html>
