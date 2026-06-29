@@ -15,7 +15,7 @@ from pathlib import Path
 
 from api.config import settings
 from api.database import get_conn
-from api.llm import chat
+from api.llm import chat_ingest
 from job.parsers import extract_text
 
 
@@ -129,13 +129,11 @@ async def run_ingest(
             date=datetime.now().strftime("%Y-%m-%d"),
             content=raw_text[:80000],  # 避免超出 context window
         )
-        llm_response = await chat(
+        llm_response = await chat_ingest(
             messages=[
                 {"role": "system", "content": INGEST_SYSTEM_PROMPT},
                 {"role": "user",   "content": user_msg},
             ],
-            temperature=0.2,
-            max_tokens=8192,
         )
 
         # ── 3. 解析 LLM 回應（JSON） ────────────────────────

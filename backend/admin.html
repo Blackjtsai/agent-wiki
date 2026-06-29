@@ -80,8 +80,41 @@ tr:hover td { background: #f6f6f6; }
 .md-body code { background: #f5f5f5; padding: 2px 6px; border-radius: 4px; }
 .md-body pre  { background: #f5f5f5; padding: 12px; border-radius: 6px; overflow: auto; margin-bottom: 12px; }
 
+/* ── Dashboard ── */
+.dash-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 12px; margin-bottom: 16px; }
+.stat-card  { background: #fff; border-radius: 8px; padding: 18px 20px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+.stat-card .val { font-size: 32px; font-weight: 700; color: #1677ff; line-height: 1; margin: 4px 0; }
+.stat-card .lbl { font-size: 13px; color: #888; }
+.stat-card .sub { font-size: 12px; color: #aaa; margin-top: 4px; }
+.svc-grid   { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 10px; margin-bottom: 16px; }
+.svc-card   { background: #fff; border-radius: 8px; padding: 14px 16px; box-shadow: 0 1px 4px rgba(0,0,0,.06); display: flex; align-items: center; gap: 12px; }
+.svc-dot    { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.svc-dot.ok   { background: #52c41a; }
+.svc-dot.warn { background: #faad14; }
+.svc-dot.error{ background: #ff4d4f; }
+.svc-name   { font-size: 14px; font-weight: 600; }
+.svc-detail { font-size: 12px; color: #888; margin-top: 2px; }
+.disk-bar-wrap { background: #f0f0f0; border-radius: 4px; height: 8px; margin-top: 6px; }
+.disk-bar      { background: #1677ff; border-radius: 4px; height: 8px; transition: width .4s; }
+
 /* ── Empty ── */
 .empty { text-align: center; color: #bbb; padding: 40px; }
+
+/* ── LLM Settings ── */
+.llm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 900px) { .llm-grid { grid-template-columns: 1fr; } }
+.llm-card { border: 1px solid #e8e8e8; border-radius: 8px; padding: 20px; }
+.llm-card h3 { font-size: 15px; margin-bottom: 4px; }
+.llm-card .llm-role-desc { font-size: 12px; color: #888; margin-bottom: 16px; }
+.llm-field { margin-bottom: 12px; }
+.llm-field label { display: block; font-size: 12px; color: #555; margin-bottom: 4px; font-weight: 600; }
+.llm-field select, .llm-field input { width: 100%; padding: 7px 10px; border: 1px solid #d9d9d9; border-radius: 6px; font-size: 13px; }
+.llm-field input:focus, .llm-field select:focus { outline: none; border-color: #1677ff; }
+.llm-actions { display: flex; gap: 8px; margin-top: 14px; align-items: center; }
+.llm-test-result { font-size: 12px; margin-top: 8px; padding: 6px 10px; border-radius: 4px; }
+.llm-test-ok   { background: #f6ffed; color: #52c41a; }
+.llm-test-err  { background: #fff2f0; color: #ff4d4f; }
+.llm-note { background: #fffbe6; border: 1px solid #ffe58f; border-radius: 6px; padding: 10px 14px; font-size: 12px; color: #7d5c00; margin-bottom: 16px; }
 
 /* ── Misc ── */
 .toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
@@ -112,11 +145,110 @@ tr:hover td { background: #f6f6f6; }
     <div class="main">
       <!-- Sidebar -->
       <ul class="sidebar">
+        <li><a :class="{active: tab==='dashboard'}" @click="tab='dashboard';loadDashboard()">📊 儀表板</a></li>
         <li><a :class="{active: tab==='documents'}" @click="tab='documents';loadDocuments()">📄 文件管理</a></li>
         <li><a :class="{active: tab==='ingest'}"    @click="tab='ingest';loadIngest()">🔄 Ingest 歷程</a></li>
         <li><a :class="{active: tab==='wiki'}"      @click="tab='wiki';loadWiki()">📖 Wiki 頁面</a></li>
         <li><a :class="{active: tab==='jobs'}"      @click="tab='jobs';loadJobs();loadSchedulerStatus()">⏱️ JOB 記錄</a></li>
+        <li><a :class="{active: tab==='settings'}" @click="tab='settings';loadLlmSettings()">⚙️ LLM 設定</a></li>
       </ul>
+
+      <!-- ════ Tab: 儀表板 ════ -->
+      <div class="content" v-show="tab==='dashboard'">
+
+        <!-- 服務狀態 -->
+        <div class="card">
+          <h2 style="margin-bottom:12px">服務狀態</h2>
+          <div class="svc-grid">
+            <div class="svc-card" v-for="s in dash.services" :key="s.name">
+              <div class="svc-dot" :class="s.status"></div>
+              <div>
+                <div class="svc-name">{{ s.name }}</div>
+                <div class="svc-detail">{{ s.detail }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 資料統計 -->
+        <div class="card">
+          <h2 style="margin-bottom:12px">資料統計</h2>
+          <div class="dash-grid">
+            <div class="stat-card">
+              <div class="lbl">來源文件</div>
+              <div class="val">{{ dash.stats.documents?.total ?? '—' }}</div>
+              <div class="sub">Pending {{ dash.stats.documents?.pending }} ／ Done {{ dash.stats.documents?.done }} ／ Error {{ dash.stats.documents?.error }}</div>
+            </div>
+            <div class="stat-card">
+              <div class="lbl">Wiki 頁面</div>
+              <div class="val">{{ dash.stats.wiki_pages ?? '—' }}</div>
+              <div class="sub">LLM 產出頁面總數</div>
+            </div>
+            <div class="stat-card">
+              <div class="lbl">Ingest 執行</div>
+              <div class="val">{{ dash.stats.ingest_logs ?? '—' }}</div>
+              <div class="sub">歷史總次數</div>
+            </div>
+            <div class="stat-card">
+              <div class="lbl">JOB 執行</div>
+              <div class="val">{{ dash.stats.job_logs?.total ?? '—' }}</div>
+              <div class="sub">成功 {{ dash.stats.job_logs?.success }} ／ 失敗 {{ dash.stats.job_logs?.error }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 磁碟使用 -->
+        <div class="card">
+          <h2 style="margin-bottom:12px">磁碟使用</h2>
+          <div v-for="d in dash.disk" :key="d.path" style="margin-bottom:14px">
+            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+              <span><b>{{ d.path }}</b>（{{ d.files }} 個檔案）</span>
+              <span style="color:#888">{{ d.size_mb }} MB</span>
+            </div>
+            <div class="disk-bar-wrap">
+              <div class="disk-bar" :style="{width: Math.min(d.size_mb/10*100,100)+'%'}"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 排程器 -->
+        <div class="card">
+          <h2 style="margin-bottom:12px">排程器 JOB</h2>
+          <table>
+            <thead><tr><th>JOB ID</th><th>名稱</th><th>下次執行</th></tr></thead>
+            <tbody>
+              <tr v-if="!dash.scheduler?.jobs?.length"><td colspan="3" class="empty">無 JOB</td></tr>
+              <tr v-for="j in dash.scheduler?.jobs" :key="j.id">
+                <td style="font-size:12px;color:#888">{{ j.id }}</td>
+                <td>{{ j.name }}</td>
+                <td style="font-size:12px">{{ j.next_run }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 最近 Ingest -->
+        <div class="card">
+          <h2 style="margin-bottom:12px">最近 Ingest 活動</h2>
+          <table>
+            <thead><tr><th>ID</th><th>文件</th><th>狀態</th><th>產出頁數</th><th>時間</th></tr></thead>
+            <tbody>
+              <tr v-if="!dash.recent_ingest?.length"><td colspan="5" class="empty">尚無 Ingest 記錄</td></tr>
+              <tr v-for="r in dash.recent_ingest" :key="r.ingest_id">
+                <td>{{ r.ingest_id }}</td>
+                <td>{{ r.file_name }}</td>
+                <td><span class="tag" :class="'tag-'+r.status">{{ {R:'Running',S:'Success',E:'Error'}[r.status]||r.status }}</span></td>
+                <td>{{ r.page_count }}</td>
+                <td style="font-size:12px">{{ formatDate(r.ingest_start) }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div style="text-align:right;margin-top:10px">
+            <button class="btn btn-default" @click="loadDashboard()">🔄 刷新</button>
+          </div>
+        </div>
+
+      </div>
 
       <!-- ════ Tab: 文件管理 ════ -->
       <div class="content" v-show="tab==='documents'">
@@ -277,6 +409,123 @@ tr:hover td { background: #f6f6f6; }
           </table>
         </div>
       </div>
+      <!-- ════ Tab: LLM 設定 ════ -->
+      <div class="content" v-show="tab==='settings'">
+        <div class="card">
+          <h2>LLM 模型設定</h2>
+          <div class="llm-note">
+            ⚠️ 套用後立即生效（in-memory），重啟服務後將恢復 <code>.env</code> 設定。若要永久變更，請同步修改 <code>.env</code>。
+          </div>
+          <div class="llm-grid">
+
+            <!-- Ingest LLM -->
+            <div class="llm-card">
+              <h3>🔄 Ingest LLM（後台文件處理）</h3>
+              <p class="llm-role-desc">文件分析 → 產出結構化 Wiki JSON，建議選擇推理能力強的模型</p>
+
+              <div class="llm-field">
+                <label>模型</label>
+                <select v-model="llmForm.ingest.model" @change="llmCustom.ingest = llmForm.ingest.model === '__custom__'">
+                  <option v-for="m in llmPresets" :key="m.value" :value="m.value">{{ m.label }}</option>
+                  <option value="__custom__">── 自訂 ──</option>
+                </select>
+                <input v-if="llmCustom.ingest" v-model="llmForm.ingest.customModel"
+                       placeholder="輸入 LiteLLM model ID，如 ollama/llama3.2" style="margin-top:6px">
+              </div>
+
+              <div class="llm-field">
+                <label>API Key <span style="color:#bbb;font-weight:400">（留空保留現有）</span></label>
+                <input v-model="llmForm.ingest.api_key" type="password" placeholder="留空則保留現有 API Key">
+              </div>
+
+              <div class="llm-field">
+                <label>Base URL <span style="color:#bbb;font-weight:400">（LiteLLM Proxy，選填）</span></label>
+                <input v-model="llmForm.ingest.base_url" placeholder="http://localhost:4000">
+              </div>
+
+              <div class="llm-field">
+                <label>目前模型</label>
+                <span style="font-size:13px;color:#1677ff;font-weight:600">{{ llmCurrent.ingest?.model || '—' }}</span>
+                <span style="font-size:12px;color:#888;margin-left:8px">API Key: {{ llmCurrent.ingest?.api_key_set ? '已設定 ✓' : '未設定' }}</span>
+              </div>
+
+              <div class="llm-actions">
+                <button class="btn btn-default" @click="testLlm('ingest')" :disabled="llmTesting.ingest">
+                  {{ llmTesting.ingest ? '測試中…' : '🔌 測試連線' }}
+                </button>
+                <button class="btn btn-primary" @click="applyLlm('ingest')">套用</button>
+              </div>
+              <div v-if="llmTestResult.ingest" class="llm-test-result"
+                   :class="llmTestResult.ingest.success ? 'llm-test-ok' : 'llm-test-err'">
+                {{ llmTestResult.ingest.success ? '✓' : '✗' }}
+                {{ llmTestResult.ingest.message }}
+                <span v-if="llmTestResult.ingest.success">（{{ llmTestResult.ingest.latency_ms }} ms）</span>
+              </div>
+            </div>
+
+            <!-- Query LLM -->
+            <div class="llm-card">
+              <h3>💬 Query LLM（前台問答）</h3>
+              <p class="llm-role-desc">使用者自然語言查詢，優先考慮回應速度，7B-14B 地端模型即可</p>
+
+              <div class="llm-field">
+                <label>模型</label>
+                <select v-model="llmForm.query.model" @change="llmCustom.query = llmForm.query.model === '__custom__'">
+                  <option v-for="m in llmPresets" :key="m.value" :value="m.value">{{ m.label }}</option>
+                  <option value="__custom__">── 自訂 ──</option>
+                </select>
+                <input v-if="llmCustom.query" v-model="llmForm.query.customModel"
+                       placeholder="輸入 LiteLLM model ID，如 ollama/llama3.2" style="margin-top:6px">
+              </div>
+
+              <div class="llm-field">
+                <label>API Key <span style="color:#bbb;font-weight:400">（留空保留現有）</span></label>
+                <input v-model="llmForm.query.api_key" type="password" placeholder="留空則保留現有 API Key">
+              </div>
+
+              <div class="llm-field">
+                <label>Base URL <span style="color:#bbb;font-weight:400">（LiteLLM Proxy，選填）</span></label>
+                <input v-model="llmForm.query.base_url" placeholder="http://localhost:4000">
+              </div>
+
+              <div class="llm-field">
+                <label>目前模型</label>
+                <span style="font-size:13px;color:#1677ff;font-weight:600">{{ llmCurrent.query?.model || '—' }}</span>
+                <span style="font-size:12px;color:#888;margin-left:8px">API Key: {{ llmCurrent.query?.api_key_set ? '已設定 ✓' : '未設定' }}</span>
+              </div>
+
+              <div class="llm-actions">
+                <button class="btn btn-default" @click="testLlm('query')" :disabled="llmTesting.query">
+                  {{ llmTesting.query ? '測試中…' : '🔌 測試連線' }}
+                </button>
+                <button class="btn btn-primary" @click="applyLlm('query')">套用</button>
+              </div>
+              <div v-if="llmTestResult.query" class="llm-test-result"
+                   :class="llmTestResult.query.success ? 'llm-test-ok' : 'llm-test-err'">
+                {{ llmTestResult.query.success ? '✓' : '✗' }}
+                {{ llmTestResult.query.message }}
+                <span v-if="llmTestResult.query.success">（{{ llmTestResult.query.latency_ms }} ms）</span>
+              </div>
+            </div>
+
+          </div><!-- llm-grid -->
+        </div>
+
+        <!-- 模型選擇建議 -->
+        <div class="card">
+          <h2>模型選擇建議</h2>
+          <table>
+            <thead><tr><th>格式</th><th>地端小模型（7B-14B）</th><th>地端中模型（32B+）</th><th>建議用途</th></tr></thead>
+            <tbody>
+              <tr><td>MD / TXT</td><td>✅ 最穩</td><td>✅ 最穩</td><td>Ingest &amp; Query 均適合</td></tr>
+              <tr><td>DOCX / PDF</td><td>✅ 大多 OK</td><td>✅ OK</td><td>Ingest 適合</td></tr>
+              <tr><td>CSV / XLSX</td><td>⚠️ 易 JSON 崩潰</td><td>✅ 大多 OK</td><td>建議搭配 API 模型</td></tr>
+            </tbody>
+          </table>
+          <p style="font-size:12px;color:#888;margin-top:10px">目前支援格式：MD / TXT / DOCX / PDF / PPTX。地端模型建議優先使用 MD / TXT 以獲得最穩定的 JSON 輸出。</p>
+        </div>
+      </div>
+
     </div><!-- main -->
   </template>
 
@@ -339,8 +588,8 @@ createApp({
         sessionStorage.setItem('atwk_token', loginToken.value);
         loggedIn.value = true;
         loginToken.value = '';
-        tab.value = 'documents';
-        loadDocuments();
+        tab.value = 'dashboard';
+        loadDashboard();
       } else {
         const data = await res.json();
         loginErr.value = data.detail || '登入失敗';
@@ -357,7 +606,15 @@ createApp({
     }
 
     // ── Tab ──────────────────────────────────────────────
-    const tab = ref('documents');
+    const tab = ref('dashboard');
+
+    // ── Dashboard ────────────────────────────────────────
+    const dash = ref({ services: [], stats: {}, disk: [], scheduler: {}, recent_ingest: [] });
+
+    async function loadDashboard() {
+      const res = await fetch(`${API}/admin/dashboard`, { headers: authHeaders() });
+      if (res.ok) dash.value = await res.json();
+    }
 
     // ── Documents ────────────────────────────────────────
     const documents  = ref([]);
@@ -471,6 +728,72 @@ createApp({
       schedulerJobs.value = data.jobs || [];
     }
 
+    // ── LLM Settings ─────────────────────────────────────
+    const llmPresets = [
+      { label: 'gemini/gemini-2.0-flash（推薦）', value: 'gemini/gemini-2.0-flash' },
+      { label: 'gemini/gemini-1.5-pro',           value: 'gemini/gemini-1.5-pro' },
+      { label: 'claude-sonnet-4-6',               value: 'claude-sonnet-4-6' },
+      { label: 'claude-haiku-4-5-20251001',       value: 'claude-haiku-4-5-20251001' },
+      { label: 'openai/gpt-4o',                   value: 'openai/gpt-4o' },
+      { label: 'ollama/llama3.2（地端）',          value: 'ollama/llama3.2' },
+    ];
+
+    const llmCurrent    = ref({ ingest: null, query: null });
+    const llmTestResult = ref({ ingest: null, query: null });
+    const llmTesting    = ref({ ingest: false, query: false });
+    const llmCustom     = ref({ ingest: false, query: false });
+    const llmForm = ref({
+      ingest: { model: 'gemini/gemini-2.0-flash', customModel: '', api_key: '', base_url: '' },
+      query:  { model: 'gemini/gemini-2.0-flash', customModel: '', api_key: '', base_url: '' },
+    });
+
+    async function loadLlmSettings() {
+      const res = await fetch(`${API}/admin/settings/llm`, { headers: authHeaders() });
+      if (!res.ok) return;
+      const data = await res.json();
+      llmCurrent.value = data;
+      // 同步 form（若已有選項則選中，否則設為自訂）
+      for (const role of ['ingest', 'query']) {
+        const m = data[role].model;
+        const inPreset = llmPresets.some(p => p.value === m);
+        if (inPreset) {
+          llmForm.value[role].model = m;
+          llmCustom.value[role] = false;
+        } else {
+          llmForm.value[role].model = '__custom__';
+          llmForm.value[role].customModel = m;
+          llmCustom.value[role] = true;
+        }
+        llmForm.value[role].base_url = data[role].base_url || '';
+      }
+    }
+
+    async function applyLlm(role) {
+      const form = llmForm.value[role];
+      const model = form.model === '__custom__' ? form.customModel.trim() : form.model;
+      if (!model) { alert('請填入模型名稱'); return; }
+      const res = await fetch(`${API}/admin/settings/llm`, {
+        method: 'PATCH',
+        headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role, model, api_key: form.api_key, base_url: form.base_url }),
+      });
+      const data = await res.json();
+      alert(data.message || (res.ok ? '套用成功' : '套用失敗'));
+      if (res.ok) { form.api_key = ''; loadLlmSettings(); }
+    }
+
+    async function testLlm(role) {
+      llmTesting.value[role] = true;
+      llmTestResult.value[role] = null;
+      const res = await fetch(`${API}/admin/settings/llm/test`, {
+        method: 'POST',
+        headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role }),
+      });
+      llmTestResult.value[role] = await res.json();
+      llmTesting.value[role] = false;
+    }
+
     // ── Helpers ──────────────────────────────────────────
     function formatDate(d) {
       if (!d) return '—';
@@ -491,6 +814,7 @@ createApp({
     return {
       loggedIn, loginToken, loginErr, doLogin, logout,
       tab,
+      dash, loadDashboard,
       documents, docFilter, uploadMsg, uploadOk, isDrag,
       loadDocuments, onFileSelect, onDrop, deleteDocument, triggerIngest,
       ingestLogs, ingestDetailModal, loadIngest, viewIngestDetail,
@@ -499,6 +823,8 @@ createApp({
       jobLogs, loadJobs,
       formatDate, formatSize, statusLabel, renderMd,
       jobNameFilter, schedulerJobs, loadSchedulerStatus,
+      llmPresets, llmCurrent, llmTestResult, llmTesting, llmCustom, llmForm,
+      loadLlmSettings, applyLlm, testLlm,
     };
   }
 }).mount('#app');

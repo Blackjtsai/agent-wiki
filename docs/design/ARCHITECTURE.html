@@ -1,14 +1,378 @@
-# ATWK — 系統架構藍圖 (ARCHITECTURE.md)
+<!DOCTYPE html>
+<html>
+<head>
+<title>ARCHITECTURE.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
 
-> 智能知識庫管理系統（Agent Wiki Knowledge Management System）
-> 此文件為 Claude 實作參考用總覽，隨程式碼同步更新。
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
 
----
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
 
-## 1. 系統全景圖
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
 
-```mermaid
-graph TB
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> or <div class="page"></div> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="atwk--系統架構藍圖-architecturemd">ATWK — 系統架構藍圖 (ARCHITECTURE.md)</h1>
+<blockquote>
+<p>智能知識庫管理系統（Agent Wiki Knowledge Management System）
+此文件為 Claude 實作參考用總覽，隨程式碼同步更新。</p>
+</blockquote>
+<hr>
+<h2 id="1-系統全景圖">1. 系統全景圖</h2>
+<pre><code class="language-mermaid"><div class="mermaid">graph TB
     subgraph 使用者端
         U1[前台使用者\n自然語言查詢]
         U2[後台管理員\n文件上架 / 管理]
@@ -64,14 +428,10 @@ graph TB
     JOB_LINT --> LLM_I
     JOB_HB --> APMS
     R_CHECKIN --> APMS
-```
-
----
-
-## 2. Ingest 資料流
-
-```mermaid
-sequenceDiagram
+</div></code></pre>
+<hr>
+<h2 id="2-ingest-資料流">2. Ingest 資料流</h2>
+<pre><code class="language-mermaid"><div class="mermaid">sequenceDiagram
     participant A as 管理員 / 排程
     participant API as FastAPI
     participant JOB as job/ingest.py
@@ -103,29 +463,10 @@ sequenceDiagram
     JOB->>DB: UPDATE atwk_ingest_log (status=S, page_count=N)
     JOB->>DB: UPDATE atwk_document (status=D)
     JOB->>FS: 更新 wiki/index.md + wiki/log.md
-```
-
-**Ingest 流程摘要：**
-
-```
-管理員上傳 / inbox/ 有新檔
-  → POST /admin/documents/upload  → inbox/ 寫檔 + DB (status=P)
-  → POST /admin/ingest-logs/{doc_id}/trigger  → 背景 asyncio.Task 啟動
-      → 讀 inbox/ → 移至 raw/（原始存檔，不再修改）
-      → LLM 分析（強推理模式：80k chars context）
-      → 產出 N 個 wiki/{category}/{slug}.md
-      → INSERT atwk_wiki_page × N
-      → UPDATE atwk_ingest_log (status=S, page_count=N)
-      → UPDATE atwk_document (status=D)
-      → 更新 wiki/index.md + wiki/log.md
-```
-
----
-
-## 3. Query 資料流
-
-```mermaid
-sequenceDiagram
+</div></code></pre>
+<hr>
+<h2 id="3-query-資料流">3. Query 資料流</h2>
+<pre><code class="language-mermaid"><div class="mermaid">sequenceDiagram
     participant U as 前台使用者
     participant FE as Vue 3 前台
     participant API as FastAPI
@@ -146,26 +487,10 @@ sequenceDiagram
     LLM-->>API: answer + sources[]
     API-->>FE: {answer, sources}
     FE-->>U: 顯示回答 + 來源連結
-```
-
-**Query 流程摘要：**
-
-```
-使用者輸入自然語言問題
-  → POST /api/query {question}
-  → 讀取 wiki/index.md → 取得全域目錄索引
-  → LLM 定位相關頁（Query LLM：快速回應優先）
-  → 讀取相關 wiki/*.md 頁面內容（可多頁）
-  → LLM 綜合生成回答
-  → 回傳 {answer: string, sources: [{title, path}]}
-```
-
----
-
-## 4. 資料庫 Schema（ER Diagram）
-
-```mermaid
-erDiagram
+</div></code></pre>
+<hr>
+<h2 id="4-資料庫-schemaer-diagram">4. 資料庫 Schema（ER Diagram）</h2>
+<pre><code class="language-mermaid"><div class="mermaid">erDiagram
     atwk_document["atwk_document（來源文件）"] {
         SERIAL      document_id     PK "文件 PK"
         VARCHAR     file_name          "原始檔案名稱"
@@ -213,12 +538,9 @@ erDiagram
     atwk_document ||--o{ atwk_ingest_log : "document_id"
     atwk_document ||--o{ atwk_wiki_page  : "source_document_id"
     atwk_ingest_log ||--o{ atwk_wiki_page : "ingest_id"
-```
-
----
-
-## 5. API 端點總覽
-
+</div></code></pre>
+<hr>
+<h2 id="5-api-端點總覽">5. API 端點總覽</h2>
 <table style="width:100%;border-collapse:collapse;font-size:0.88em;margin-bottom:0.5em;">
   <tr style="background:#1a6fa0;color:white;font-weight:bold;">
     <td style="padding:6px 12px;border:1px solid #7fb3d3;">方法</td>
@@ -329,11 +651,8 @@ erDiagram
     <td style="padding:6px 12px;border:1px solid #d6e8f5;">測試指定角色 LLM 連線（回傳延遲）</td>
   </tr>
 </table>
-
----
-
-## 6. 實作層次對應
-
+<hr>
+<h2 id="6-實作層次對應">6. 實作層次對應</h2>
 <table style="width:100%;border-collapse:collapse;font-size:0.88em;margin-bottom:0.5em;">
   <tr style="background:#1a6fa0;color:white;font-weight:bold;">
     <td style="padding:6px 12px;border:1px solid #7fb3d3;width:60px;">Layer</td>
@@ -390,104 +709,123 @@ erDiagram
     <td style="padding:6px 12px;border:1px solid #d6e8f5;text-align:center;">✅</td>
   </tr>
 </table>
-
----
-
-## 7. LLM 路由策略（雙 LLM 設計）
-
-ATWK 將 LLM 用途拆為兩個角色，由 `api/config.py` 的 `ingest_*` / `query_*` properties 管理，留空則 fallback 至共用 `ATWK_LLM_*`。
-
-<table style="width:100%;border-collapse:collapse;font-size:0.88em;margin-bottom:1em;">
-  <tr style="background:#1a6fa0;color:white;font-weight:bold;">
-    <td style="padding:6px 12px;border:1px solid #7fb3d3;">角色</td>
-    <td style="padding:6px 12px;border:1px solid #7fb3d3;">調用位置</td>
-    <td style="padding:6px 12px;border:1px solid #7fb3d3;">需求特性</td>
-    <td style="padding:6px 12px;border:1px solid #7fb3d3;">建議模型</td>
-    <td style="padding:6px 12px;border:1px solid #7fb3d3;">環境變數</td>
-  </tr>
-  <tr style="background:#fff7e6;">
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;font-weight:bold;">Ingest LLM</td>
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;"><code>job/ingest.py</code><br><code>chat_ingest()</code></td>
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;">強推理、大 context（80k chars）、穩定 JSON 輸出</td>
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;">Gemini 2.5 Flash<br>Claude Sonnet<br>GPT-4o</td>
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;"><code>ATWK_LLM_INGEST_MODEL</code></td>
-  </tr>
-  <tr style="background:#f0f7ff;">
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;font-weight:bold;">Query LLM</td>
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;"><code>api/routers/query.py</code><br><code>chat_query()</code></td>
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;">快速回應（使用者即時等待）、問答能力</td>
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;">同上，或地端 7B-14B</td>
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;"><code>ATWK_LLM_QUERY_MODEL</code></td>
-  </tr>
+<hr>
+<h2 id="7-llm-路由策略雙-llm-設計">7. LLM 路由策略（雙 LLM 設計）</h2>
+<p>ATWK 將 LLM 用途拆為兩個獨立設定，由 <code>api/config.py</code> 的 <code>ingest_*</code> / <code>query_*</code> properties 管理，fallback 到共用的 <code>llm_model</code>。</p>
+<table>
+<thead>
+<tr>
+<th>角色</th>
+<th>調用位置</th>
+<th>需求特性</th>
+<th>建議模型</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Ingest LLM</strong></td>
+<td><code>job/ingest.py</code> → <code>chat_ingest()</code></td>
+<td>強推理、大 context（80k chars）、穩定 JSON 輸出</td>
+<td>Gemini 2.0 Flash / Claude Sonnet / GPT-4o</td>
+</tr>
+<tr>
+<td><strong>Query LLM</strong></td>
+<td><code>api/routers/query.py</code> → <code>chat_query()</code></td>
+<td>快速回應（使用者即時等待）、問答能力</td>
+<td>同上，或 7B-14B 地端模型</td>
+</tr>
+</tbody>
+</table>
+<p><strong>環境變數設定（<code>.env</code>）：</strong></p>
+<pre class="hljs"><code><div># 各角色專屬設定（留空則 fallback 至共用 ATWK_LLM_*）
+ATWK_LLM_INGEST_MODEL=gemini/gemini-2.0-flash
+ATWK_LLM_QUERY_MODEL=gemini/gemini-2.0-flash
+</div></code></pre>
+<p><strong>後台切換（in-memory）：</strong> 管理員可於後台「⚙️ LLM 設定」tab 即時套用新模型，重啟服務後恢復 <code>.env</code> 值。</p>
+<p><strong>格式 × 地端模型適合度：</strong></p>
+<table>
+<thead>
+<tr>
+<th>格式</th>
+<th>地端 7B-14B</th>
+<th>地端 32B+</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MD / TXT</td>
+<td>✅ 最穩</td>
+<td>✅ 最穩</td>
+<td>首選，JSON 輸出穩定</td>
+</tr>
+<tr>
+<td>DOCX / PDF</td>
+<td>✅ 大多 OK</td>
+<td>✅ OK</td>
+<td>—</td>
+</tr>
+<tr>
+<td>CSV / XLSX</td>
+<td>⚠️ 易崩潰</td>
+<td>✅ 大多 OK</td>
+<td>建議搭配 API 模型</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="8-模組對應">8. 模組對應</h2>
+<table>
+<thead>
+<tr>
+<th>模組</th>
+<th>資料夾</th>
+<th>Port/Path</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FastAPI 主服務</td>
+<td><code>api/</code></td>
+<td><code>:8300</code></td>
+</tr>
+<tr>
+<td>前台 WEB</td>
+<td><code>frontend/</code></td>
+<td><code>GET /</code></td>
+</tr>
+<tr>
+<td>後台管理 WEB</td>
+<td><code>backend/</code></td>
+<td><code>GET /admin</code></td>
+</tr>
+<tr>
+<td>後台儀表板 API</td>
+<td><code>api/routers/admin_dashboard.py</code></td>
+<td><code>GET /admin/dashboard</code></td>
+</tr>
+<tr>
+<td>JOB 排程</td>
+<td><code>job/</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td>異質系統整合</td>
+<td><code>external/</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td>DB Migration</td>
+<td><code>db/</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td>E2E 測試</td>
+<td><code>tests/</code></td>
+<td>—</td>
+</tr>
+</tbody>
 </table>
 
-**後台切換（in-memory）：** 管理員可於後台「⚙️ LLM 設定」即時套用新模型，重啟服務後恢復 `.env` 值。
-
-**地端模型文件格式適合度：**
-
-| 文件格式 | 地端 7B-14B | 地端 32B+ | 備註 |
-|---------|------------|----------|------|
-| MD / TXT | ✅ 最穩 | ✅ 最穩 | 首選，JSON 輸出穩定 |
-| DOCX / PDF | ✅ 大多 OK | ✅ OK | — |
-| CSV / XLSX | ⚠️ 易崩潰 | ✅ 大多 OK | 建議搭配 API 模型 |
-
----
-
-## 8. 模組對應
-
-<table style="width:100%;border-collapse:collapse;font-size:0.88em;margin-bottom:0.5em;">
-  <tr style="background:#1a6fa0;color:white;font-weight:bold;">
-    <td style="padding:6px 12px;border:1px solid #7fb3d3;">模組</td>
-    <td style="padding:6px 12px;border:1px solid #7fb3d3;">資料夾 / 檔案</td>
-    <td style="padding:6px 12px;border:1px solid #7fb3d3;">Port / Path</td>
-    <td style="padding:6px 12px;border:1px solid #7fb3d3;">說明</td>
-  </tr>
-  <tr style="background:#ffffff;">
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;font-weight:bold;">FastAPI 主服務</td>
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;"><code>api/main.py</code></td>
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;"><code>:8300</code></td>
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;">Lifespan 管理 DB Pool + APScheduler</td>
-  </tr>
-  <tr style="background:#eaf3fb;">
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;font-weight:bold;">前台 WEB</td>
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;"><code>frontend/index.html</code></td>
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;"><code>GET /</code></td>
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;">Vue 3 CDN；自然語言查詢 / Wiki 瀏覽 / 說明</td>
-  </tr>
-  <tr style="background:#ffffff;">
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;font-weight:bold;">後台管理 WEB</td>
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;"><code>backend/admin.html</code></td>
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;"><code>GET /admin</code></td>
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;">Vue 3 CDN；Token 登入，管理文件 / Wiki / JOB</td>
-  </tr>
-  <tr style="background:#eaf3fb;">
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;font-weight:bold;">後台儀表板 API</td>
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;"><code>api/routers/admin_dashboard.py</code></td>
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;"><code>GET /admin/dashboard</code></td>
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;">彙整服務狀態 / 統計 / 磁碟 / 排程 / 最近 Ingest</td>
-  </tr>
-  <tr style="background:#ffffff;">
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;font-weight:bold;">JOB 排程</td>
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;"><code>job/scheduler.py</code><br><code>job/ingest.py</code> <code>job/lint.py</code></td>
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;">—</td>
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;">APScheduler：inbox_scan / daily_lint / heartbeat</td>
-  </tr>
-  <tr style="background:#eaf3fb;">
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;font-weight:bold;">異質系統整合</td>
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;"><code>external/agentpulse.py</code></td>
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;">—</td>
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;">AgentPULSE APMS 心跳打卡</td>
-  </tr>
-  <tr style="background:#ffffff;">
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;font-weight:bold;">DB Migration</td>
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;"><code>db/migration_001_init.sql</code></td>
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;">—</td>
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;">建立 db_atwk 及 4 張業務資料表</td>
-  </tr>
-  <tr style="background:#eaf3fb;">
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;font-weight:bold;">E2E 測試</td>
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;"><code>tests/e2e_test.py</code><br><code>tests/run_tests.py</code></td>
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;">—</td>
-    <td style="padding:6px 12px;border:1px solid #d6e8f5;">全流程 e2e；9/11 pass（2 項需 LLM quota）</td>
-  </tr>
-</table>
+</body>
+</html>

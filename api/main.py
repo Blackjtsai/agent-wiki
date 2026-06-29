@@ -9,12 +9,14 @@
 
 import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 
 from api.database import init_pool, close_pool
 from api.routers import health, query, wiki_public, checkin
-from api.routers import admin_auth, admin_documents, admin_ingest, admin_wiki, admin_jobs
+from api.routers import admin_auth, admin_documents, admin_ingest, admin_wiki, admin_jobs, admin_dashboard, admin_settings
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("atwk")
@@ -62,3 +64,16 @@ app.include_router(admin_documents.router,  prefix="/admin")  # Layer 3
 app.include_router(admin_ingest.router,     prefix="/admin")  # Layer 3
 app.include_router(admin_wiki.router,       prefix="/admin")  # Layer 3
 app.include_router(admin_jobs.router,       prefix="/admin")  # Layer 5
+app.include_router(admin_dashboard.router,  prefix="/admin")  # Dashboard
+app.include_router(admin_settings.router,  prefix="/admin")  # LLM Settings
+
+# ── UI Pages ─────────────────────────────────────────────────
+_ROOT = Path(__file__).parent.parent
+
+@app.get("/", include_in_schema=False)
+async def frontend():
+    return FileResponse(_ROOT / "frontend" / "index.html")
+
+@app.get("/admin", include_in_schema=False)
+async def backend_admin():
+    return FileResponse(_ROOT / "backend" / "admin.html")

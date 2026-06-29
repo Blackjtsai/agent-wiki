@@ -10,7 +10,7 @@
 - [x] UC-ATWK 3.1.1.1 — 建立 Python 虛擬環境（uv）與 pyproject.toml
 - [x] UC-ATWK 3.1.1.2 — 建立 PostgreSQL 資料庫 db_atwk（待使用者執行 createdb）
 - [x] UC-ATWK 3.1.1.3 — 建立所有資料表（migration_001）— SQL 已寫好
-- [ ] UC-ATWK 3.1.1.4 — 設定 LLM 連線（LiteLLM，寫入 .env）（待使用者填 .env）
+- [x] UC-ATWK 3.1.1.4 — 設定 LLM 連線（LiteLLM，寫入 .env）— Gemini 2.5 Flash 已設定
 - [x] UC-ATWK 3.1.1.5 — 建立 wiki 目錄結構（inbox/raw/wiki/templates）
 - [x] UC-ATWK 3.1.1.6 — FastAPI 骨架啟動（port 8300，/health 端點通）— 程式碼已完成
 

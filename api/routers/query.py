@@ -14,7 +14,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from api.config import settings
-from api.llm import chat
+from api.llm import chat_query
 
 router = APIRouter(tags=["Query"])
 
@@ -95,13 +95,11 @@ async def query(request: QueryRequest) -> QueryResponse:
     user_msg = f"## Wiki 知識庫內容\n\n{wiki_context}\n\n## 使用者問題\n\n{request.q}"
 
     try:
-        llm_response = await chat(
+        llm_response = await chat_query(
             messages=[
                 {"role": "system", "content": QUERY_SYSTEM_PROMPT},
                 {"role": "user",   "content": user_msg},
             ],
-            temperature=0.1,
-            max_tokens=4096,
         )
     except RuntimeError as e:
         raise HTTPException(status_code=503, detail=f"LLM 服務暫時不可用：{e}")

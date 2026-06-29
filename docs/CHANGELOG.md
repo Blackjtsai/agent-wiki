@@ -2,6 +2,20 @@
 
 ---
 
+## [0.8.0] 2026-06-29
+
+### 後台儀表板 + LLM 雙角色設定 + ARCHITECTURE 升級
+
+- 新增 `api/routers/admin_dashboard.py`：GET /admin/dashboard，彙整服務狀態 / 資料統計 / 磁碟使用 / 排程器 / 最近 Ingest
+- 新增 `api/routers/admin_settings.py`：GET /PATCH /admin/settings/llm + POST /admin/settings/llm/test，後台即時切換 Ingest / Query LLM 模型
+- 更新 `backend/admin.html`：新增「📊 儀表板」Tab 與「⚙️ LLM 設定」Tab（支援雙角色切換 + 連線測試）
+- 更新 `api/llm.py`：新增 `chat_ingest()` / `chat_query()` 雙角色 wrapper，chat() 支援 model/api_key/base_url 覆寫
+- 更新 `api/config.py`：新增 `ingest_*` / `query_*` 9 個 properties，含 fallback 到共用設定邏輯
+- 更新 `.env.example`：新增 Ingest / Query 雙 LLM 環境變數欄位說明
+- 更新 `docs/design/ARCHITECTURE.md`：完整重寫，新增 sequence diagram（Ingest / Query）、erDiagram（4 張表）、HTML API 總覽表、Layer 狀態表、LLM 路由策略表、模組對應表；增加文字流程摘要
+
+---
+
 ## [0.7.0] 2026-06-29
 
 ### Layer 7 — 端對端整合測試通過

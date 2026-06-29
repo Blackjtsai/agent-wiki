@@ -32,10 +32,46 @@ class Settings:
             f"@{self.db_host}:{self.db_port}/{self.db_name}"
         )
 
-    # ── LLM ─────────────────────────────────────────────────
-    llm_model: str    = os.getenv("ATWK_LLM_MODEL", "claude-sonnet-4-6")
+    # ── LLM 共用預設 ─────────────────────────────────────────
+    llm_model: str    = os.getenv("ATWK_LLM_MODEL", "gemini/gemini-2.0-flash")
     llm_api_key: str  = os.getenv("ATWK_LLM_API_KEY", "")
     llm_base_url: str = os.getenv("ATWK_LLM_BASE_URL", "")
+
+    # ── LLM Ingest（後台文件處理） ───────────────────────────
+    llm_ingest_model: str    = os.getenv("ATWK_LLM_INGEST_MODEL", "")
+    llm_ingest_api_key: str  = os.getenv("ATWK_LLM_INGEST_API_KEY", "")
+    llm_ingest_base_url: str = os.getenv("ATWK_LLM_INGEST_BASE_URL", "")
+
+    # ── LLM Query（前台問答） ────────────────────────────────
+    llm_query_model: str    = os.getenv("ATWK_LLM_QUERY_MODEL", "")
+    llm_query_api_key: str  = os.getenv("ATWK_LLM_QUERY_API_KEY", "")
+    llm_query_base_url: str = os.getenv("ATWK_LLM_QUERY_BASE_URL", "")
+
+    @property
+    def ingest_model(self) -> str:
+        """Ingest 用模型，fallback 到共用設定。"""
+        return self.llm_ingest_model or self.llm_model
+
+    @property
+    def ingest_api_key(self) -> str:
+        return self.llm_ingest_api_key or self.llm_api_key
+
+    @property
+    def ingest_base_url(self) -> str:
+        return self.llm_ingest_base_url or self.llm_base_url
+
+    @property
+    def query_model(self) -> str:
+        """Query 用模型，fallback 到共用設定。"""
+        return self.llm_query_model or self.llm_model
+
+    @property
+    def query_api_key(self) -> str:
+        return self.llm_query_api_key or self.llm_api_key
+
+    @property
+    def query_base_url(self) -> str:
+        return self.llm_query_base_url or self.llm_base_url
 
     # ── 服務 ────────────────────────────────────────────────
     port: int           = int(os.getenv("ATWK_PORT", "8300"))
